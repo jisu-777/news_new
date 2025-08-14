@@ -5,7 +5,6 @@ import streamlit as st
 import pandas as pd
 from typing import List, Dict, Any
 from utils.time_window import format_datetime_for_display
-from utils.dedupe import get_matched_keywords, format_keywords_display
 
 
 def render_news_cards(news_items: List[Dict[str, Any]], 

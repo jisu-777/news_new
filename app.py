@@ -47,7 +47,7 @@ def main():
     show_search_summary(selected_group1, selected_keywords, start_time, end_time, use_gpt)
     
     # 검색 실행 버튼 체크
-    if st.sidebar.button("🔍 검색 실행", type="primary", use_container_width=True):
+    if st.sidebar.button("🔍 검색 실행", type="primary", use_container_width=True, key="main_search_button"):
         # 검색 실행
         with st.spinner("뉴스를 검색하고 있습니다..."):
             news_results = execute_news_search(

@@ -124,7 +124,8 @@ def render_sidebar() -> Tuple[str, List[str], datetime, datetime, int, int, bool
     search_button = st.sidebar.button(
         "🔍 검색 실행",
         type="primary",
-        use_container_width=True
+        use_container_width=True,
+        key="sidebar_search_button"
     )
     
     return (

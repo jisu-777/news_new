@@ -137,12 +137,12 @@ def render_pagination_controls(total_pages: int, total_count: int, items_per_pag
     col1, col2, col3, col4, col5 = st.columns([1, 1, 2, 1, 1])
     
     with col1:
-        if st.button("⏮️ 처음", use_container_width=True):
+        if st.button("⏮️ 처음", use_container_width=True, key="first_page_button"):
             st.session_state.current_page = 0
             st.rerun()
     
     with col2:
-        if st.button("◀️ 이전", use_container_width=True, disabled=st.session_state.current_page == 0):
+        if st.button("◀️ 이전", use_container_width=True, disabled=st.session_state.current_page == 0, key="prev_page_button"):
             st.session_state.current_page = max(0, st.session_state.current_page - 1)
             st.rerun()
     
@@ -152,12 +152,12 @@ def render_pagination_controls(total_pages: int, total_count: int, items_per_pag
         st.write(f"({total_count:,}건 중 {st.session_state.current_page * items_per_page + 1:,}-{min((st.session_state.current_page + 1) * items_per_page, total_count):,}건)")
     
     with col4:
-        if st.button("다음 ▶️", use_container_width=True, disabled=st.session_state.current_page >= total_pages - 1):
+        if st.button("다음 ▶️", use_container_width=True, disabled=st.session_state.current_page >= total_pages - 1, key="next_page_button"):
             st.session_state.current_page = min(total_pages - 1, st.session_state.current_page + 1)
             st.rerun()
     
     with col5:
-        if st.button("마지막 ⏭️", use_container_width=True):
+        if st.button("마지막 ⏭️", use_container_width=True, key="last_page_button"):
             st.session_state.current_page = total_pages - 1
             st.rerun()
 
@@ -166,7 +166,7 @@ def render_load_more_button() -> None:
     """로드모어 버튼 렌더링"""
     st.markdown("---")
     
-    if st.button("📖 더 보기", use_container_width=True, type="secondary"):
+    if st.button("📖 더 보기", use_container_width=True, type="secondary", key="load_more_button"):
         st.session_state.current_page += 1
         st.rerun()
 

@@ -1,4 +1,4 @@
-햐"""
+"""
 사이드바 UI 컴포넌트
 """
 import streamlit as st

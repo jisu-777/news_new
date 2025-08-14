@@ -1,4 +1,4 @@
-"""
+햐"""
 사이드바 UI 컴포넌트
 """
 import streamlit as st
@@ -16,18 +16,18 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         Tuple: (selected_groups, selected_keywords, start_time, end_time, max_pages, keyword_limit, use_gpt, threshold)
     """
     st.sidebar.title("🔍 뉴스 검색 설정")
-    st.sidebar.markdown("**Group1 카테고리 선택 → Group2 키워드 자동 포함**")
+    st.sidebar.markdown("**카테고리 선택 → 관련 키워드 자동 포함**")
     
-    # Group1 다중선택
+    # Group1 다중선택 (카테고리)
     group1_options = list(GROUP_DEFS.keys())
     selected_groups = st.sidebar.multiselect(
-        "📊 Group1 (카테고리)",
+        "📊 카테고리 선택",
         group1_options,
-        default=group1_options[:2],  # 3 → 2로 줄임 (검색 시간 단축)
+        default=group1_options[:2],  # 기본값 2개
         help="검색할 뉴스 카테고리를 하나 이상 선택하세요"
     )
     
-    # Group2 키워드 자동 포함 (사용자 선택 불가)
+    # Group2 키워드 자동 포함 (사용자에게 보이지 않음)
     all_keywords = []
     if selected_groups:
         for group in selected_groups:
@@ -40,30 +40,19 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         # 중복 제거
         all_keywords = list(set(all_keywords))
         
-        # 키워드 개수 제한 (검색 범위 조절용)
-        keyword_limit = st.sidebar.slider(
-            "🔑 검색 키워드 범위",
-            min_value=1,
-            max_value=len(all_keywords),
-            value=min(8, len(all_keywords)),  # 기본값을 8로 조정
-            help="검색에 사용할 키워드 범위를 조절하세요 (Group2 키워드 자동 포함)"
-        )
+        # 키워드 개수 제한 (백엔드에서만 사용)
+        keyword_limit = min(8, len(all_keywords))  # 기본값 8개로 고정
         
-        # 제한된 키워드만 사용 (사용자 선택 불가)
+        # 선택된 키워드 (사용자에게는 보이지 않음)
         selected_keywords = all_keywords[:keyword_limit]
         
-        # 선택된 키워드 미리보기
-        st.sidebar.info(f"📝 **{len(selected_keywords)}개 키워드가 자동으로 선택되었습니다**")
-        st.sidebar.write("**포함된 키워드:**")
-        for i, keyword in enumerate(selected_keywords[:5], 1):
-            st.sidebar.write(f"{i}. {keyword}")
-        if len(selected_keywords) > 5:
-            st.sidebar.write(f"... 외 {len(selected_keywords) - 5}개")
+        # 간단한 정보만 표시
+        st.sidebar.info(f"📝 **{len(selected_groups)}개 카테고리 선택됨**")
     else:
         # 그룹이 선택되지 않은 경우
         keyword_limit = 0
         selected_keywords = []
-        st.sidebar.warning("⚠️ Group1 카테고리를 하나 이상 선택해주세요")
+        st.sidebar.warning("⚠️ 카테고리를 하나 이상 선택해주세요")
     
     st.sidebar.divider()
     
@@ -101,7 +90,7 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         "📄 키워드당 최대 페이지 수",
         min_value=1,
         max_value=5,
-        value=1,  # 2 → 1로 줄임 (검색 시간 단축)
+        value=1,  # 기본값 1페이지
         help="각 키워드별로 검색할 최대 페이지 수입니다"
     )
     
@@ -208,13 +197,6 @@ def show_enhanced_search_summary(selected_groups: List[str], keywords: List[str]
     
     groups_str = ", ".join(selected_groups)
     st.sidebar.write(f"**카테고리:** {groups_str}")
-    st.sidebar.write(f"**키워드:** {len(keywords)}개")
+    st.sidebar.write(f"**키워드:** {len(keywords)}개 (자동 선택)")
     st.sidebar.write(f"**기간:** {start_time.strftime('%m-%d %H:%M')} ~ {end_time.strftime('%m-%d %H:%M')}")
     st.sidebar.write(f"**GPT 판별:** {'사용' if use_gpt else '미사용'}")
-    
-    if keywords:
-        st.sidebar.write("**선택된 키워드:**")
-        for i, keyword in enumerate(keywords[:5], 1):
-            st.sidebar.write(f"{i}. {keyword}")
-        if len(keywords) > 5:
-            st.sidebar.write(f"... 외 {len(keywords) - 5}개")

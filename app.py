@@ -30,6 +30,7 @@ def main():
     # 헤더
     st.title("📰 회계법인용 뉴스 수집/필터링 앱")
     st.markdown("**재무/세무/거버넌스/산업/기업 동향 중심의 뉴스 수집 도구**")
+    st.info("💡 **팁:** 카테고리를 선택하면 관련 키워드가 자동으로 포함되어 검색됩니다.")
     
     # 사이드바 렌더링
     (
@@ -99,7 +100,7 @@ def execute_news_search(selected_groups: List[str], keywords: List[str], start_t
     try:
         # 1. 네이버 뉴스 API 검색
         groups_str = ", ".join(selected_groups)
-        st.info(f"🔍 '{groups_str}' 카테고리로 {len(keywords)}개 키워드 검색 중...")
+        st.info(f"🔍 '{groups_str}' 카테고리로 검색 중... (키워드 {len(keywords)}개 자동 포함)")
         
         naver_api = NaverNewsAPI()
         raw_results = naver_api.search_by_group(selected_groups, keywords, max_pages)

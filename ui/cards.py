@@ -192,7 +192,7 @@ def get_score_color(score: float) -> str:
 
 
 def render_results_summary(news_items: List[Dict[str, Any]], 
-                         group1: str, 
+                         selected_groups: List[str], 
                          keywords: List[str],
                          start_time, 
                          end_time,
@@ -203,7 +203,7 @@ def render_results_summary(news_items: List[Dict[str, Any]],
     
     Args:
         news_items: 뉴스 아이템 리스트
-        group1: 선택된 Group1
+        selected_groups: 선택된 Group1 리스트
         keywords: 선택된 키워드
         start_time: 시작 시간
         end_time: 종료 시간
@@ -219,7 +219,8 @@ def render_results_summary(news_items: List[Dict[str, Any]],
     col1, col2 = st.columns(2)
     
     with col1:
-        st.write(f"**검색 카테고리:** {group1}")
+        groups_str = ", ".join(selected_groups)
+        st.write(f"**검색 카테고리:** {groups_str}")
         st.write(f"**사용 키워드:** {len(keywords)}개")
         st.write(f"**검색 기간:** {start_time.strftime('%m-%d %H:%M')} ~ {end_time.strftime('%m-%d %H:%M')}")
     

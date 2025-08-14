@@ -33,7 +33,7 @@ def main():
     
     # 사이드바 렌더링
     (
-        selected_group1,
+        selected_groups,
         selected_keywords,
         start_time,
         end_time,
@@ -44,14 +44,14 @@ def main():
     ) = render_sidebar()
     
     # 검색 요약 표시
-    show_search_summary(selected_group1, selected_keywords, start_time, end_time, use_gpt)
+    show_search_summary(selected_groups, selected_keywords, start_time, end_time, use_gpt)
     
     # 검색 실행 버튼 체크
     if st.sidebar.button("🔍 검색 실행", type="primary", use_container_width=True, key="main_search_button"):
         # 검색 실행
         with st.spinner("뉴스를 검색하고 있습니다..."):
             news_results = execute_news_search(
-                selected_group1, 
+                selected_groups, 
                 selected_keywords, 
                 start_time, 
                 end_time, 
@@ -63,7 +63,7 @@ def main():
             # 세션 상태에 결과 저장
             st.session_state.news_results = news_results
             st.session_state.search_params = {
-                'group1': selected_group1,
+                'groups': selected_groups,
                 'keywords': selected_keywords,
                 'start_time': start_time,
                 'end_time': end_time,
@@ -79,13 +79,13 @@ def main():
         )
 
 
-def execute_news_search(group1: str, keywords: List[str], start_time, end_time, 
+def execute_news_search(selected_groups: List[str], keywords: List[str], start_time, end_time, 
                        max_pages: int, use_gpt: bool, threshold: float) -> List[Dict[str, Any]]:
     """
     뉴스 검색 실행
     
     Args:
-        group1: 선택된 Group1
+        selected_groups: 선택된 Group1 리스트
         keywords: 선택된 키워드
         start_time: 시작 시간
         end_time: 종료 시간
@@ -98,10 +98,11 @@ def execute_news_search(group1: str, keywords: List[str], start_time, end_time,
     """
     try:
         # 1. 네이버 뉴스 API 검색
-        st.info(f"🔍 '{group1}' 카테고리로 {len(keywords)}개 키워드 검색 중...")
+        groups_str = ", ".join(selected_groups)
+        st.info(f"🔍 '{groups_str}' 카테고리로 {len(keywords)}개 키워드 검색 중...")
         
         naver_api = NaverNewsAPI()
-        raw_results = naver_api.search_by_group(group1, keywords, max_pages)
+        raw_results = naver_api.search_by_group(selected_groups, keywords, max_pages)
         
         if not raw_results:
             st.warning("검색 결과가 없습니다.")

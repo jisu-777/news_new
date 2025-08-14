@@ -8,47 +8,59 @@ from constants import GROUP_DEFS, KEYWORD_DEFS, DEFAULT_PRINT_THRESHOLD
 from utils.time_window import get_default_time_window
 
 
-def render_sidebar() -> Tuple[str, List[str], datetime, datetime, int, int, bool, float]:
+def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int, bool, float]:
     """
     사이드바 렌더링 및 설정값 반환
     
     Returns:
-        Tuple: (group1, selected_keywords, start_time, end_time, max_pages, keyword_limit, use_gpt, threshold)
+        Tuple: (selected_groups, selected_keywords, start_time, end_time, max_pages, keyword_limit, use_gpt, threshold)
     """
     st.sidebar.title("🔍 검색 설정")
     
-    # Group1 선택
+    # Group1 다중선택
     group1_options = list(GROUP_DEFS.keys())
-    selected_group1 = st.sidebar.selectbox(
+    selected_groups = st.sidebar.multiselect(
         "📊 Group1 (카테고리)",
         group1_options,
-        help="검색할 뉴스 카테고리를 선택하세요"
+        default=group1_options[:3] if len(group1_options) >= 3 else group1_options,
+        help="검색할 뉴스 카테고리를 하나 이상 선택하세요"
     )
     
-    # Group2 키워드 선택
-    group2_keywords = get_group2_keywords(selected_group1)
-    if isinstance(group2_keywords, list):
+    # Group2 키워드 선택 (선택된 모든 그룹의 키워드 합치기)
+    all_keywords = []
+    if selected_groups:
+        for group in selected_groups:
+            group2_keywords = get_group2_keywords(group)
+            if isinstance(group2_keywords, list):
+                all_keywords.extend(group2_keywords)
+            else:
+                all_keywords.append(group2_keywords)
+        
+        # 중복 제거
+        all_keywords = list(set(all_keywords))
+        
         # 키워드 개수 제한
         keyword_limit = st.sidebar.slider(
             "🔑 키워드 개수 제한",
             min_value=1,
-            max_value=len(group2_keywords),
-            value=min(10, len(group2_keywords)),
+            max_value=len(all_keywords),
+            value=min(15, len(all_keywords)),
             help="사용할 키워드 개수를 제한하세요"
         )
         
         # 제한된 키워드만 선택
-        limited_keywords = group2_keywords[:keyword_limit]
+        limited_keywords = all_keywords[:keyword_limit]
         selected_keywords = st.sidebar.multiselect(
             "🎯 Group2 (키워드)",
             limited_keywords,
-            default=limited_keywords[:5] if len(limited_keywords) >= 5 else limited_keywords,
+            default=limited_keywords[:8] if len(limited_keywords) >= 8 else limited_keywords,
             help="검색에 사용할 키워드를 선택하세요"
         )
     else:
-        # 단일 키워드 그룹
-        keyword_limit = 1
-        selected_keywords = [group2_keywords]
+        # 그룹이 선택되지 않은 경우
+        keyword_limit = 0
+        selected_keywords = []
+        st.sidebar.warning("⚠️ Group1 카테고리를 하나 이상 선택해주세요")
     
     st.sidebar.divider()
     
@@ -129,7 +141,7 @@ def render_sidebar() -> Tuple[str, List[str], datetime, datetime, int, int, bool
     )
     
     return (
-        selected_group1,
+        selected_groups,
         selected_keywords,
         start_time,
         end_time,
@@ -177,12 +189,12 @@ def estimate_gpt_cost(keyword_count: int) -> float:
     return round(estimated_news * cost_per_news, 4)
 
 
-def show_search_summary(group1: str, keywords: List[str], start_time: datetime, end_time: datetime, use_gpt: bool):
+def show_search_summary(selected_groups: List[str], keywords: List[str], start_time: datetime, end_time: datetime, use_gpt: bool):
     """
     검색 설정 요약 표시
     
     Args:
-        group1: 선택된 Group1
+        selected_groups: 선택된 Group1 리스트
         keywords: 선택된 키워드
         start_time: 시작 시간
         end_time: 종료 시간
@@ -191,7 +203,8 @@ def show_search_summary(group1: str, keywords: List[str], start_time: datetime, 
     st.sidebar.divider()
     st.sidebar.subheader("📋 검색 요약")
     
-    st.sidebar.write(f"**카테고리:** {group1}")
+    groups_str = ", ".join(selected_groups)
+    st.sidebar.write(f"**카테고리:** {groups_str}")
     st.sidebar.write(f"**키워드:** {len(keywords)}개")
     st.sidebar.write(f"**기간:** {start_time.strftime('%m-%d %H:%M')} ~ {end_time.strftime('%m-%d %H:%M')}")
     st.sidebar.write(f"**GPT 판별:** {'사용' if use_gpt else '미사용'}")

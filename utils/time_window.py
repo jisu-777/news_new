@@ -10,7 +10,7 @@ import re
 def get_default_time_window() -> Tuple[datetime, datetime]:
     """
     기본 날짜 윈도우 계산
-    - 전일 오전 10:00 ~ 당일 오전 10:00 (KST)
+    - 항상 전일 오전 10:00 ~ 당일 오전 10:00 (KST)
     - 월요일은 금요일 오전 10:00 ~ 월요일 오전 10:00
     
     Returns:
@@ -19,16 +19,12 @@ def get_default_time_window() -> Tuple[datetime, datetime]:
     kst = pytz.timezone('Asia/Seoul')
     now = datetime.now(kst)
     
-    # 오전 10시 기준으로 날짜 계산
+    # 오늘 10시 기준
     today_10am = now.replace(hour=10, minute=0, second=0, microsecond=0)
     
-    # 오전 10시 이전이면 전일 10시부터, 이후면 당일 10시부터
-    if now.hour < 10:
-        end_time = today_10am
-        start_time = end_time - timedelta(days=1)
-    else:
-        start_time = today_10am
-        end_time = start_time + timedelta(days=1)
+    # 항상 전날 10시 ~ 오늘 10시 (24시간)
+    end_time = today_10am
+    start_time = end_time - timedelta(days=1)
     
     # 월요일 특별 처리
     if now.weekday() == 0:  # 월요일

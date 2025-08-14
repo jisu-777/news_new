@@ -125,22 +125,35 @@ class NaverNewsAPI:
         
         return all_results
     
-    def search_by_group(self, group_name: str, keywords: List[str], max_pages_per_keyword: int = 2) -> List[Dict[str, Any]]:
+    def search_by_group(self, selected_groups: List[str], keywords: List[str], max_pages_per_keyword: int = 2) -> List[Dict[str, Any]]:
         """
-        그룹명 + 키워드로 검색
+        선택된 그룹들 + 키워드로 검색
         
         Args:
-            group_name: 그룹명 (예: "주요기업")
+            selected_groups: 선택된 그룹명 리스트 (예: ["주요기업", "산업동향"])
             keywords: 검색할 키워드 리스트
             max_pages_per_keyword: 키워드당 최대 검색할 페이지 수
             
         Returns:
             List[Dict[str, Any]]: 검색 결과 리스트
         """
-        # 그룹명 + 키워드로 검색 쿼리 생성
-        search_keywords = [f'"{group_name}" "{keyword}"' for keyword in keywords]
+        all_results = []
         
-        return self.search_multiple_keywords(search_keywords, max_pages_per_keyword)
+        # 각 그룹별로 검색
+        for group in selected_groups:
+            print(f"그룹 '{group}' 검색 중...")
+            
+            # 그룹명 + 키워드로 검색 쿼리 생성
+            search_keywords = [f'"{group}" "{keyword}"' for keyword in keywords]
+            
+            # 해당 그룹의 검색 결과
+            group_results = self.search_multiple_keywords(search_keywords, max_pages_per_keyword)
+            all_results.extend(group_results)
+            
+            # 그룹 간 지연
+            time.sleep(NAVER_API_DELAY)
+        
+        return all_results
     
     def get_total_count(self, query: str) -> int:
         """

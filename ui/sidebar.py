@@ -15,7 +15,8 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
     Returns:
         Tuple: (selected_groups, selected_keywords, start_time, end_time, max_pages, keyword_limit, use_gpt, threshold)
     """
-    st.sidebar.title("🔍 검색 설정")
+    st.sidebar.title("🔍 뉴스 검색 설정")
+    st.sidebar.markdown("**Group1 카테고리 선택 → Group2 키워드 자동 포함**")
     
     # Group1 다중선택
     group1_options = list(GROUP_DEFS.keys())
@@ -26,7 +27,7 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         help="검색할 뉴스 카테고리를 하나 이상 선택하세요"
     )
     
-    # Group2 키워드 선택 (선택된 모든 그룹의 키워드 합치기)
+    # Group2 키워드 자동 포함 (사용자 선택 불가)
     all_keywords = []
     if selected_groups:
         for group in selected_groups:
@@ -39,23 +40,25 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         # 중복 제거
         all_keywords = list(set(all_keywords))
         
-        # 키워드 개수 제한
+        # 키워드 개수 제한 (검색 범위 조절용)
         keyword_limit = st.sidebar.slider(
-            "🔑 키워드 개수 제한",
+            "🔑 검색 키워드 범위",
             min_value=1,
             max_value=len(all_keywords),
-            value=min(5, len(all_keywords)),  # 15 → 5로 줄임 (검색 시간 단축)
-            help="사용할 키워드 개수를 제한하세요"
+            value=min(8, len(all_keywords)),  # 기본값을 8로 조정
+            help="검색에 사용할 키워드 범위를 조절하세요 (Group2 키워드 자동 포함)"
         )
         
-        # 제한된 키워드만 선택
-        limited_keywords = all_keywords[:keyword_limit]
-        selected_keywords = st.sidebar.multiselect(
-            "🎯 Group2 (키워드)",
-            limited_keywords,
-            default=limited_keywords[:5] if len(limited_keywords) >= 5 else limited_keywords,  # 8 → 5로 줄임
-            help="검색에 사용할 키워드를 선택하세요"
-        )
+        # 제한된 키워드만 사용 (사용자 선택 불가)
+        selected_keywords = all_keywords[:keyword_limit]
+        
+        # 선택된 키워드 미리보기
+        st.sidebar.info(f"📝 **{len(selected_keywords)}개 키워드가 자동으로 선택되었습니다**")
+        st.sidebar.write("**포함된 키워드:**")
+        for i, keyword in enumerate(selected_keywords[:5], 1):
+            st.sidebar.write(f"{i}. {keyword}")
+        if len(selected_keywords) > 5:
+            st.sidebar.write(f"... 외 {len(selected_keywords) - 5}개")
     else:
         # 그룹이 선택되지 않은 경우
         keyword_limit = 0

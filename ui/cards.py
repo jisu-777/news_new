@@ -381,12 +381,30 @@ def render_dataframe_preview(news_items: List[Dict[str, Any]]) -> None:
     # 미리보기 표시
     st.dataframe(df, use_container_width=True)
     
-    # CSV 다운로드
+    # CSV 다운로드 (한글 깨짐 방지)
+    # UTF-8 BOM을 추가하여 Excel에서 한글이 제대로 표시되도록 함
     csv_data = df.to_csv(index=False, encoding='utf-8-sig')
-    st.download_button(
-        label="📥 CSV 다운로드",
-        data=csv_data,
-        file_name=f"뉴스검색결과_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
-        mime="text/csv",
-        use_container_width=True
-    )
+    
+    # 파일명에 현재 시간 추가
+    timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"뉴스검색결과_{timestamp}.csv"
+    
+    # 두 가지 다운로드 옵션 제공
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.download_button(
+            label="📥 CSV 다운로드 (Excel 호환)",
+            data=csv_data,
+            file_name=filename,
+            mime="text/csv",
+            use_container_width=True,
+            help="UTF-8 BOM 인코딩으로 Excel에서 한글이 제대로 표시됩니다"
+        )
+    
+    with col2:
+        # Excel에서 더 안전하게 열 수 있는 방법 안내
+        st.info("💡 **Excel에서 열기**: '데이터' → '텍스트/CSV' 선택 후 인코딩을 '65001: 유니코드(UTF-8)'로 설정")
+    
+    # 추가 안내
+    st.info("💡 **CSV 다운로드 팁**: Excel에서 열 때 한글이 깨진다면 '데이터' → '텍스트/CSV'로 열어보세요.")

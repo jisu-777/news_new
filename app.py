@@ -9,10 +9,10 @@ from services.naver_api import NaverNewsAPI
 from services.gpt_judger import GPTPrintJudger
 from filters import apply_all_filters, add_source_info
 from utils.dedupe import clean_news_data
-from ui.sidebar import render_sidebar, show_search_summary
+from ui.sidebar import render_sidebar, show_enhanced_search_summary
 from ui.cards import (
     render_news_cards, 
-    render_results_summary, 
+    render_enhanced_results_summary,  # render_results_summary → render_enhanced_results_summary
     render_dataframe_preview
 )
 
@@ -44,7 +44,7 @@ def main():
     ) = render_sidebar()
     
     # 검색 요약 표시
-    show_search_summary(selected_groups, selected_keywords, start_time, end_time, use_gpt)
+    show_enhanced_search_summary(selected_groups, selected_keywords, start_time, end_time, use_gpt)
     
     # 검색 실행 버튼 체크
     if st.sidebar.button("🔍 검색 실행", type="primary", use_container_width=True, key="main_search_button"):
@@ -177,9 +177,9 @@ def display_search_results(news_results: List[Dict[str, Any]], search_params: Di
         return
     
     # 결과 요약
-    render_results_summary(
+    render_enhanced_results_summary(
         news_results,
-        search_params['group1'],
+        search_params['groups'],  # group1 → groups로 수정
         search_params['keywords'],
         search_params['start_time'],
         search_params['end_time'],

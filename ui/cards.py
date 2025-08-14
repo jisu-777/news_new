@@ -191,15 +191,116 @@ def get_score_color(score: float) -> str:
         return "red"
 
 
-def render_results_summary(news_items: List[Dict[str, Any]], 
-                         selected_groups: List[str], 
-                         keywords: List[str],
-                         start_time, 
-                         end_time,
-                         use_gpt: bool,
-                         threshold: float) -> None:
+def categorize_news(news_items: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
     """
-    검색 결과 요약 표시
+    뉴스를 카테고리별로 자동 분류
+    
+    Args:
+        news_items: 뉴스 아이템 리스트
+        
+    Returns:
+        Dict[str, List[Dict[str, Any]]]: 카테고리별로 분류된 뉴스
+    """
+    categories = {
+        "회계법인": [],
+        "공인회계사회": [],
+        "세제·정책": [],
+        "주요 기업": [],
+        "산업 동향": [],
+        "금융": [],
+        "경제": [],
+        "기타": []
+    }
+    
+    # 키워드 기반 카테고리 분류
+    for item in news_items:
+        title = item.get('title', '').lower()
+        description = item.get('description', '').lower()
+        content = f"{title} {description}"
+        
+        # 회계법인 관련
+        if any(keyword in content for keyword in ['pwc', '삼일', '삼정', 'kpmg', 'ey', 'deloitte']):
+            categories["회계법인"].append(item)
+        # 공인회계사회 관련
+        elif any(keyword in content for keyword in ['공인회계사회', '회계감독', '회계기준', '감사']):
+            categories["공인회계사회"].append(item)
+        # 세제·정책 관련
+        elif any(keyword in content for keyword in ['세제', '정책', '법인세', '금투세', '분리과세', '과세', '세금']):
+            categories["세제·정책"].append(item)
+        # 주요 기업 관련
+        elif any(keyword in content for keyword in ['삼성', 'lg', 'sk', '현대', '네이버', '카카오', '포스코', '롯데', '한화']):
+            categories["주요 기업"].append(item)
+        # 산업 동향 관련
+        elif any(keyword in content for keyword in ['ai', '반도체', '배터리', '자동차', '조선', '제약', '바이오', '문화', '컨텐츠']):
+            categories["산업 동향"].append(item)
+        # 금융 관련
+        elif any(keyword in content for keyword in ['금융', '보험', '펀드', '투자', '자산', '유언', '신탁', '달러', '코인']):
+            categories["금융"].append(item)
+        # 경제 관련
+        elif any(keyword in content for keyword in ['경제', '어음', '부도', '미국', '우선주의', '동맹']):
+            categories["경제"].append(item)
+        else:
+            categories["기타"].append(item)
+    
+    # 빈 카테고리 제거
+    return {k: v for k, v in categories.items() if v}
+
+
+def render_categorized_results(news_items: List[Dict[str, Any]]) -> None:
+    """
+    카테고리별로 분류된 뉴스 결과 표시
+    
+    Args:
+        news_items: 뉴스 아이템 리스트
+    """
+    if not news_items:
+        return
+    
+    # 카테고리별 분류
+    categorized_news = categorize_news(news_items)
+    
+    st.markdown("---")
+    st.subheader("📊 카테고리별 뉴스 분류")
+    
+    # 전체 요약
+    total_count = len(news_items)
+    st.info(f"📰 총 {total_count:,}건의 뉴스를 {len(categorized_news)}개 카테고리로 분류했습니다.")
+    
+    # 카테고리별 표시
+    for category, items in categorized_news.items():
+        if not items:
+            continue
+            
+        with st.expander(f"🔖 {category} ({len(items):,}건)", expanded=True):
+            # 카테고리별 요약
+            st.write(f"**{category}** 관련 뉴스 {len(items):,}건")
+            
+            # 뉴스 목록
+            for i, item in enumerate(items[:10], 1):  # 최대 10개만 표시
+                title = item.get('title', '').replace('<b>', '').replace('</b>', '')
+                source = item.get('source_name', '')
+                pubdate = item.get('pubDate', '')
+                
+                st.write(f"{i}. **{title}**")
+                st.write(f"   📰 {source} | 📅 {pubdate}")
+                
+                if i < len(items) and i < 10:
+                    st.write("---")
+            
+            # 더 많은 결과가 있는 경우
+            if len(items) > 10:
+                st.write(f"... 외 {len(items) - 10}건 더")
+
+
+def render_enhanced_results_summary(news_items: List[Dict[str, Any]], 
+                                  selected_groups: List[str], 
+                                  keywords: List[str],
+                                  start_time, 
+                                  end_time,
+                                  use_gpt: bool,
+                                  threshold: float) -> None:
+    """
+    향상된 검색 결과 요약 표시 (카테고리별 분류 포함)
     
     Args:
         news_items: 뉴스 아이템 리스트
@@ -244,6 +345,9 @@ def render_results_summary(news_items: List[Dict[str, Any]],
         st.write("**언론사별 분포:**")
         for source, count in sorted(source_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
             st.write(f"- {source}: {count:,}건")
+    
+    # 카테고리별 분류 결과 표시
+    render_categorized_results(news_items)
 
 
 def render_dataframe_preview(news_items: List[Dict[str, Any]]) -> None:

@@ -22,7 +22,7 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
     selected_groups = st.sidebar.multiselect(
         "📊 Group1 (카테고리)",
         group1_options,
-        default=group1_options[:3] if len(group1_options) >= 3 else group1_options,
+        default=group1_options[:2],  # 3 → 2로 줄임 (검색 시간 단축)
         help="검색할 뉴스 카테고리를 하나 이상 선택하세요"
     )
     
@@ -44,7 +44,7 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
             "🔑 키워드 개수 제한",
             min_value=1,
             max_value=len(all_keywords),
-            value=min(15, len(all_keywords)),
+            value=min(5, len(all_keywords)),  # 15 → 5로 줄임 (검색 시간 단축)
             help="사용할 키워드 개수를 제한하세요"
         )
         
@@ -53,7 +53,7 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         selected_keywords = st.sidebar.multiselect(
             "🎯 Group2 (키워드)",
             limited_keywords,
-            default=limited_keywords[:8] if len(limited_keywords) >= 8 else limited_keywords,
+            default=limited_keywords[:5] if len(limited_keywords) >= 5 else limited_keywords,  # 8 → 5로 줄임
             help="검색에 사용할 키워드를 선택하세요"
         )
     else:
@@ -98,7 +98,7 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         "📄 키워드당 최대 페이지 수",
         min_value=1,
         max_value=5,
-        value=2,
+        value=1,  # 2 → 1로 줄임 (검색 시간 단축)
         help="각 키워드별로 검색할 최대 페이지 수입니다"
     )
     
@@ -189,9 +189,9 @@ def estimate_gpt_cost(keyword_count: int) -> float:
     return round(estimated_news * cost_per_news, 4)
 
 
-def show_search_summary(selected_groups: List[str], keywords: List[str], start_time: datetime, end_time: datetime, use_gpt: bool):
+def show_enhanced_search_summary(selected_groups: List[str], keywords: List[str], start_time: datetime, end_time: datetime, use_gpt: bool):
     """
-    검색 설정 요약 표시
+    향상된 검색 설정 요약 표시 (카테고리별 분류 포함)
     
     Args:
         selected_groups: 선택된 Group1 리스트

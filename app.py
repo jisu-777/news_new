@@ -100,7 +100,7 @@ def execute_news_search(selected_groups: List[str], keywords: List[str], start_t
     try:
         # 1. 네이버 뉴스 API 검색
         groups_str = ", ".join(selected_groups)
-        st.info(f"🔍 '{groups_str}' 카테고리로 검색 중... (키워드 {len(keywords)}개 자동 포함)")
+        st.info(f"🔍 '{groups_str}' 카테고리로 검색 중...")
         
         naver_api = NaverNewsAPI()
         raw_results = naver_api.search_by_group(selected_groups, keywords, max_pages)
@@ -191,12 +191,12 @@ def display_search_results(news_results: List[Dict[str, Any]], search_params: Di
     # 뉴스 카드 표시
     render_news_cards(
         news_results,
-        search_params['keywords'],
+        search_params['groups'],
         DEFAULT_ITEMS_PER_PAGE
     )
     
     # DataFrame 미리보기 및 CSV 다운로드
-    render_dataframe_preview(news_results)
+    render_dataframe_preview(news_results, search_params['groups'])
 
 
 def check_environment():

@@ -9,14 +9,14 @@ from utils.dedupe import get_matched_keywords, format_keywords_display
 
 
 def render_news_cards(news_items: List[Dict[str, Any]], 
-                     keywords: List[str],
+                     selected_groups: List[str],
                      items_per_page: int = 10) -> None:
     """
     뉴스 결과를 카드 형태로 렌더링
     
     Args:
         news_items: 뉴스 아이템 리스트
-        keywords: 검색에 사용된 키워드
+        selected_groups: 선택된 카테고리 리스트
         items_per_page: 페이지당 표시할 아이템 수
     """
     if not news_items:
@@ -41,7 +41,7 @@ def render_news_cards(news_items: List[Dict[str, Any]],
     
     # 카드 렌더링
     for i, item in enumerate(current_items):
-        render_single_news_card(item, keywords, start_idx + i + 1)
+        render_single_news_card(item, selected_groups, start_idx + i + 1)
     
     # 페이지네이션 컨트롤
     render_pagination_controls(total_pages, total_count, items_per_page)
@@ -51,13 +51,13 @@ def render_news_cards(news_items: List[Dict[str, Any]],
         render_load_more_button()
 
 
-def render_single_news_card(item: Dict[str, Any], keywords: List[str], item_number: int) -> None:
+def render_single_news_card(item: Dict[str, Any], selected_groups: List[str], item_number: int) -> None:
     """
     단일 뉴스 카드 렌더링
     
     Args:
         item: 뉴스 아이템
-        keywords: 검색 키워드
+        selected_groups: 선택된 카테고리 리스트
         item_number: 아이템 번호
     """
     with st.container():
@@ -107,11 +107,19 @@ def render_single_news_card(item: Dict[str, Any], keywords: List[str], item_numb
             if domain:
                 st.write(f"🌐 {domain}")
         
-        # 매칭된 키워드
-        matched_keywords = get_matched_keywords(title, description, keywords)
-        if matched_keywords:
-            keywords_str = format_keywords_display(matched_keywords)
-            st.write(f"🎯 **매칭 키워드:** {keywords_str}")
+        # 매칭된 카테고리
+        matched_categories = []
+        for group in selected_groups:
+            if group in title or group in description:
+                matched_categories.append(group)
+        
+        if matched_categories:
+            categories_str = ", ".join(matched_categories)
+            st.write(f"🏷️ **매칭 카테고리:** {categories_str}")
+        else:
+            # 매칭되지 않으면 전체 카테고리 표시
+            categories_str = ", ".join(selected_groups)
+            st.write(f"🏷️ **검색 카테고리:** {categories_str}")
         
         # GPT 지면판별 점수 (있는 경우)
         print_score = item.get('print_score')
@@ -322,7 +330,6 @@ def render_enhanced_results_summary(news_items: List[Dict[str, Any]],
     with col1:
         groups_str = ", ".join(selected_groups)
         st.write(f"**검색 카테고리:** {groups_str}")
-        st.write(f"**사용 키워드:** {len(keywords)}개")
         st.write(f"**검색 기간:** {start_time.strftime('%m-%d %H:%M')} ~ {end_time.strftime('%m-%d %H:%M')}")
     
     with col2:
@@ -350,12 +357,13 @@ def render_enhanced_results_summary(news_items: List[Dict[str, Any]],
     render_categorized_results(news_items)
 
 
-def render_dataframe_preview(news_items: List[Dict[str, Any]]) -> None:
+def render_dataframe_preview(news_items: List[Dict[str, Any]], selected_groups: List[str]) -> None:
     """
     결과 DataFrame 미리보기 및 CSV 다운로드
     
     Args:
         news_items: 뉴스 아이템 리스트
+        selected_groups: 선택된 카테고리 리스트
     """
     if not news_items:
         return
@@ -366,7 +374,18 @@ def render_dataframe_preview(news_items: List[Dict[str, Any]]) -> None:
     # DataFrame 생성
     df_data = []
     for item in news_items:
+        # 매칭된 카테고리 찾기
+        matched_categories = []
+        for group in selected_groups:
+            if group in item.get('title', '') or group in item.get('description', ''):
+                matched_categories.append(group)
+        
+        # 카테고리가 매칭되지 않으면 전체 카테고리 표시
+        if not matched_categories:
+            matched_categories = selected_groups
+        
         df_data.append({
+            '카테고리': ', '.join(matched_categories),
             '제목': item.get('title', '').replace('<b>', '').replace('</b>', ''),
             '요약': item.get('description', '').replace('<b>', '').replace('</b>', ''),
             '링크': item.get('link', ''),

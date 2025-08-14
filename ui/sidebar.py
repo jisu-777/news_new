@@ -46,8 +46,11 @@ def render_sidebar() -> Tuple[List[str], List[str], datetime, datetime, int, int
         # 선택된 키워드 (사용자에게는 보이지 않음)
         selected_keywords = all_keywords[:keyword_limit]
         
-        # 간단한 정보만 표시
+        # 카테고리 정보만 표시
         st.sidebar.info(f"📝 **{len(selected_groups)}개 카테고리 선택됨**")
+        st.sidebar.write("**선택된 카테고리:**")
+        for i, category in enumerate(selected_groups, 1):
+            st.sidebar.write(f"{i}. {category}")
     else:
         # 그룹이 선택되지 않은 경우
         keyword_limit = 0
@@ -197,6 +200,5 @@ def show_enhanced_search_summary(selected_groups: List[str], keywords: List[str]
     
     groups_str = ", ".join(selected_groups)
     st.sidebar.write(f"**카테고리:** {groups_str}")
-    st.sidebar.write(f"**키워드:** {len(keywords)}개 (자동 선택)")
     st.sidebar.write(f"**기간:** {start_time.strftime('%m-%d %H:%M')} ~ {end_time.strftime('%m-%d %H:%M')}")
     st.sidebar.write(f"**GPT 판별:** {'사용' if use_gpt else '미사용'}")
